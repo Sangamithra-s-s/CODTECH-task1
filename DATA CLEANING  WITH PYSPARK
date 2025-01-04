@@ -1,0 +1,69 @@
+Python Script
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+# Initialize Spark session
+spark = SparkSession.builder \
+    .appName("DataCleaning") \
+    .getOrCreate()
+
+# Sample data as a list of tuples
+data = [
+    (1, "Alice", 25),
+    (2, "Bob", 30),
+    (3, "Charlie", None),
+    (1, "Alice", 25),
+    (None, "Dave", 40)
+]
+
+# Define schema
+schema = ["ID", "Name", "Age"]
+
+# Create DataFrame
+df = spark.createDataFrame(data, schema)
+
+# Show initial DataFrame
+print("Initial DataFrame:")
+df.show()
+
+# Handle missing values
+# Option 1: Drop rows with any missing values
+df_cleaned = df.dropna()
+
+# Option 2: Fill missing values with a specific value (e.g., 0 or 'Unknown')
+df_filled = df.fillna({'Age': 0, 'ID': -1})
+
+# Remove duplicates
+df_no_duplicates = df_cleaned.dropDuplicates()
+
+# Show cleaned DataFrame
+print("Cleaned DataFrame:")
+df_no_duplicates.show()
+
+# Save cleaned data to a new CSV file
+df_no_duplicates.write.csv('path/to/cleaned_dataset.csv', header=True)
+
+# Stop Spark session
+spark.stop()
+
+Initial DataFrame
+
++----+-------+----+
+|  ID|   Name| Age|
++----+-------+----+
+|   1|  Alice|  25|
+|   2|    Bob|  30|
+|   3|Charlie|NULL|
+|   1|  Alice|  25|
+|NULL|   Dave|  40|
++----+-------+----+
+
+Cleaned DataFrame
+
++---+-------+---+
+| ID|   Name|Age|
++---+-------+---+
+|  1|  Alice| 25|
+|  2|    Bob| 30|
++---+-------+---+
